@@ -1,0 +1,116 @@
+---
+title: "LEFT-ENDPOINT RULE OF A FUNCTION AND BROWNIAN MOTION"
+author: "NGUYEN NGOC PHUNG"
+date: "12/18/2020"
+output:
+  word_document: default
+  html_document: default
+---
+### LEFT-ENDPOINT RULE
+
+#### integral of function f(x) in the interval [a,b] is approximately equal to sigma(f(xi-1)*delta(x))
+
+### TASK 1
+
+#### Use left-endpoint rule to calculate the integral of function f(x)=exp(x^2+ sin(x)) in the interval [0,1]
+#### Compare the calculated result as n-> inf
+
+```{r}
+#GENERATE FUNCTION 
+
+#First, we generate a function to calculate integral by left-endpoint rule @0@
+
+left_endpoint<- function(vector,delta)
+{
+  #vector is a vector with length n contain all value of f(xi-1) *-*
+  #let's product be a vector contain f(xi-1)*delta(x) for i in 1 to n
+  product<-numeric(n)
+  for(i in 1:n)
+  {
+    product[i]<-vector[i]*delta
+  }
+  sum<-sum(product)
+  return(sum)
+}
+
+```
+
+```{r}
+#CALCULATE EXACT VALUE
+integrand<-function(x) {exp(x^2+sin(x))}
+plot.function(integrand,0,1)
+
+#so the exact value is:
+integrate(integrand,0,1)
+ex_value<-2.562582
+
+#USE LEFT-ENDPOINT TO CALCULATE INTEGRAL
+
+#for n=10
+n<-10
+delta<-1/n
+x<-seq(0,1-delta,delta)
+vector<-numeric(n)
+for(i in 1:n)
+{
+  vector[i]<-integrand(x[i])
+}
+
+estimate1<-left_endpoint(vector,delta)
+estimate1
+#so the error is *-*
+abs(estimate1-ex_value)
+
+#for n=1000
+n<-1000
+delta<-1/n
+x<-seq(0,1-delta,delta)
+vector<-numeric(n)
+for(i in 1:n)
+{
+  vector[i]<-integrand(x[i])
+}
+
+estimate2<-left_endpoint(vector,delta)
+estimate2
+#so the error is *-*
+abs(estimate2-ex_value)
+
+#for n=100000
+n<-100000
+delta<-1/n
+x<-seq(0,1-delta,delta)
+vector<-numeric(n)
+for(i in 1:n)
+{
+  vector[i]<-integrand(x[i])
+}
+
+estimate3<-left_endpoint(vector,delta)
+estimate3
+#so the error is *-*
+abs(estimate3-ex_value)
+
+
+```
+
+### TASK 2
+#### 
+
+```{r}
+#First, we need to make a path of Brownian motion in [0,1]
+Path_way<- function(n,t)
+{
+  Path<-c(0,cumsum(rnorm(n,0,t/n)))
+  return(Path)
+}
+
+P<-Path_way(100000,1)
+step<-seq(0,1,length=100001)
+plot(step,P, type="l")
+
+#so the estimated bounded region is @-@
+delta<-1/100000
+left_endpoint(P,delta)
+
+```

@@ -1,0 +1,72 @@
+---
+title: "ITO INTEGRAL + ITO DOEBLIN FORMULA"
+author: "NGUYEN NGOC PHUNG"
+date: "1/8/2021"
+output: html_document
+---
+
+## ITO INTEGRAL AND ITO-DOEBLIN FORMULA
+
+### QUESTION 1
+### see the distribution of I1 and I2 @-@
+```{r}
+#First, we generate a function to calculate integral by left-endpoint rule @0@
+
+left_endpoint<- function(vector,d)
+{
+  #vector is a vector with length n contain all value of f(xi-1) *-*
+  #let's product be a vector contain f(xi-1)*delta(x) for i in 1 to n
+  product<-numeric(n)
+  for(i in 1:n)
+  {
+    product[i]<-vector[i]*(d[i+1]-d[i])
+  }
+  sum<-sum(product)
+  return(sum)
+}
+
+Path_BM <-function(n,t)
+{
+  Path<-c(0,cumsum(sqrt(t/n)*rnorm(n)))
+  return(Path)
+}
+
+n<-10^4
+t<-1
+
+t<-seq(0,1-1/n,length=n)
+sin<-numeric(n)
+for(i in 1:n)
+{
+  sin[i]<-sin(t[i])
+}
+
+I1<-numeric(n)
+for(i in 1:n)
+{
+  P_BM<-Path_BM(n,t)
+  I1[i]<-left_endpoint(sin,P_BM)
+}
+
+hist(I1,main="Distribution of I1", col="blue")
+
+mean(I1)
+var(I1)
+
+t<-2
+I2<-numeric(n)
+for(i in 1:n)
+{
+  P_BM<-Path_BM(n,t)
+  I2[i]<-left_endpoint(sin,P_BM)
+}
+
+hist(I2,main="Distribution of I2", col="blue")
+
+mean(I2)
+var(I2)
+```
+
+
+
+

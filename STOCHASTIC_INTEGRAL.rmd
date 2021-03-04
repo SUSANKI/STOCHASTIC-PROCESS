@@ -1,0 +1,68 @@
+---
+title: "STOCHASTIC INTEGRAL"
+author: "NGUYEN NGOC PHUNG"
+date: "12/22/2020"
+output: html_document
+---
+### STOCHASTIC INTEGRAL
+
+#### CHECK WHETHER THE STOCHASTIC INTEGRAL IS NORMALLY DISTRIBUTED @-@
+
+#### First, we generate 10,000 paths of standard Brownian motion in [0,1]
+#### Second, use midpoint rule to estimate the area under each paths
+#### Third, plot all the areas into the histogram to see the distribution (theoretically, it must follow N(0,1/3))
+
+```{r}
+#fucntion to generate paths
+Path_BM<- function(n,t)
+{
+  Path<-c(0,cumsum(rnorm(n,0,t/n)))
+  return(Path)
+}
+
+# function to estimate area under the paths by applying midpoint rule @-@
+mid_point<-function(f,x)
+{
+  #f is the vector contain all value of f(x(tk)) 
+  #x is the vector contain all value of t(tk)
+  n<-length(x)-1
+  vector_sum<-numeric(n)
+  for(i in 1:n)
+  {
+    vector_sum[i]<-(f[i]+f[i+1])*(x[i+1]-x[i])/2
+  }
+  s<-sum(vector_sum)
+  return(s)
+}
+
+
+#create a list to contain all 10,000 paths @-@
+list_of_vec<-list()
+for(i in 1:10000)
+{
+  #we create paths with n=10000 in [0,1]
+  list_of_vec[[i]]<-Path_BM(10000,1)
+}
+
+#Let's look at the graphs of the first 12 paths *-*
+step<-seq(0,1,1/10000)
+par(mfrow=c(3,4))
+for(i in 1:12)
+{
+  plot(step,list_of_vec[[i]],type="l")
+}
+
+#now, we estimate the area under each paths and assign all in vector integral @-@
+integral<-numeric(10000)
+for(i in 1:10000)
+{
+  integral[i]<-mid_point(list_of_vec[[i]],step)
+}
+
+mean(integral)
+var(integral)
+
+#now, last part, we see the histogram of integral @-@
+par(mfrow=c(1,1))
+hist(integral,main="Distribution of I(1)")
+```

@@ -1,0 +1,271 @@
+---
+title: "POISSON PROCESS (2)"
+author: "NGUYEN NGOC PHUNG"
+date: "10/18/2020"
+output:
+  word_document: default
+  html_document: default
+---
+## SIMULATION POISSON (SUBMIT)
+
+####  Simulate and plot a path of Poisson process with intensity lambda  = 2 on [0,3] by 2 approaches
+
+### EXPONENTIAL DISTRIBUTION OF INTER-ARRIVAL TIME            
+```{r}
+#first, we need to make a function for generating Poisson process using inter-arrival time @-@
+Poisson_processX<-function(lamda,t)
+{
+  X<-numeric(1)
+  X[1]<-rexp(1,lamda)
+  while(sum(X)<t) 
+  {
+    n<-length(X)
+    length(X)<-n+1
+    X[n+1]<-rexp(1,lamda)
+  }
+  return(X)
+}
+#So the sequence of inter-arrival time X with lamda=2 in [0,3] is
+X<-Poisson_processX(2,3)
+X
+
+ #then our poisson process will look  like the following @-@
+n<-length(X)
+N<-numeric(n) ; time<-numeric(n)
+for(i in 1:n)
+{
+  N[i]<-i
+  time[i]<-sum(X[1:i])
+}
+library(ggplot2)
+ggplot()+
+  geom_step(aes(x=time, y=N))+
+  scale_x_continuous(breaks=time)+
+  theme_bw()
+
+```
+
+### CONDITIONAL DISTRIBUTION OF ARRIVAL TIME
+
+```{r}
+#second, we will make a function for generating Poisson process using conditional arrival time @-@
+Poisson_process_S<-function(lamda,t)
+{
+  n<-rpois(1,lamda)
+  uni<-numeric(n)
+  for(i in 1:n)
+  {
+    uni[i]<-runif(1,0,t)
+  }
+  S<-sort(uni,decreasing = FALSE)
+  return(S)
+}
+#So the sequence of arrival time S with lamda=2 in [0,3] is
+S<-Poisson_process_S(2,3)
+S
+ #then our poisson process will look  like the following @-@
+N<-1:length(S)
+time<-S
+library(ggplot2)
+ggplot()+
+  geom_step(aes(x=time, y=N))+
+  scale_x_continuous(breaks=time)+
+  theme_bw()
+```
+
+## SIMULATION POISSON (OPTIONAL)
+
+#### Q1: Simulate a path of Poisson process with rate λ = 2 on interval time [0, 10] by simulating inter-arrival time
+```{r}
+#Sequence of inter-arrival time X with lamda=2 in [0,10] is
+X<-Poisson_processX(2,10)
+X
+
+ #then our poisson process will look  like the following @-@
+n<-length(X)
+N<-numeric(n) ; time<-numeric(n)
+for(i in 1:n)
+{
+  N[i]<-i
+  time[i]<-sum(X[1:i])
+}
+library(ggplot2)
+ggplot()+
+  geom_step(aes(x=time, y=N))+
+  scale_x_continuous(breaks=time)+
+  theme_bw()
+
+```
+
+#### Q2: Simulate a path of Poisson process with rate λ = 2 on interval time [0, 10] by simulating number of event Nt first and then arrival times (using conditional distribution of arrival times)
+```{r}
+#Sequence of arrival time S with lamda=2 in [0,10] is
+S<-Poisson_process_S(2,10)
+S
+ #then our poisson process will look  like the following @-@
+N<-1:length(S)
+time<-S
+library(ggplot2)
+ggplot()+
+  geom_step(aes(x=time, y=N))+
+  scale_x_continuous(breaks=time)+
+  theme_bw()
+```
+
+#### Q3: Simulate a path of insurance surplus on [0, 10] with
+
+#### (Nt)t is a poisson process with rate λ = 2
+
+#### Claim size Wk ,→ Exp(1)
+
+```{r}
+
+#CRAMER_LUNDBERG
+#now we will create a function for Cramer_Lundberg problem @-@
+Cramer_Lundberg<-function(lamdaN,lamdaW,x0,c,t)
+{
+  #first, we find the path of inter-arrival times X in [0,t]
+  X<-Poisson_processX(lamdaN,t) 
+  #so there are n number of arrivals in [0,t]
+  n<-length(X)
+  #second, we create an insurance surplus path for drawing U_draw (which mean this path contains all the point in our drawing) @-@
+  #Beside, We also create an insurance surplus path U @-@
+  U<-numeric(n+1)
+  U_draw<-numeric(2*n+1)
+  
+  U[1]<-x0
+  U_draw[1]<-x0
+  for (i in 1:n)
+  {
+    U_draw[2*i]<-x0+c*X[i]
+    W<-rexp(1,lamdaW)
+    U_draw[(2*i)+1]<-U_draw[2*i]-W
+    U[i+1]<-U_draw[(2*i)+1]
+    x0<-U_draw[(2*i)+1]
+  }
+  #then we return a list of 2 paths, path of X and path of U
+  mylist<-list(X,U,U_draw)
+  return(mylist)
+}
+
+Path<-Cramer_Lundberg(2,1,10,1,10)
+#Since our Path is in list form of X and U, we need to unlist
+X<-unlist(Path[1])
+U_draw<-unlist(Path[3])
+
+X
+U_draw
+
+#DRAW INSURANCE SURPLUS *-*
+n<-length(X)
+time<-numeric((2*n)+1)
+time[1]<-0
+for(i in 1:n)
+{
+  S<-sum(X[1:i])
+  time[(2*i)]<-S
+  time[(2*i)+1]<-S
+}
+
+library(ggplot2)
+ggplot()+
+  geom_point(aes(x=time,y=U_draw))+
+  geom_line(aes(x=time,y=U_draw))+
+  ylab("U(t)")+
+  theme_bw()
+
+
+```
+
+#### QUESTION 4: Estimate ruin probability of the previous problem on finite horizon time [0, 10] with c = 1, x = 10, (Nt)t is a poisson process with rate λ = 2, claim size Wk ,→ Exp(1)
+
+```{r}
+#Now we create a function to calculate ruin probability @-@
+RUIN_PROBABILITY<-function(lamdaN,lamdaW,x0,c,t)
+{
+  #we simulate 100000 times Cramer_Lundberg function and count number of path being ruined
+  #we count number of path having negative U(t)
+  count<-0
+  for(i in 1:100000)
+  {
+    Path<-Cramer_Lundberg(lamdaN,lamdaW,x0,c,t)
+    U<-unlist(Path[2])
+    n<-length(U)
+    negative<-0
+    for(j in 1:n)
+    {
+      if(U[j]<0) {negative<-1; break}
+    }
+    count<-count+negative
+  }
+  Ruin_proba<-count/100000
+  return(Ruin_proba)
+}
+
+#So the ruin probability in [0,10] with c = 1, x = 10, (Nt)t is a poisson process with rate λ = 2, claim size Wk ,→ Exp(1) is *-*
+RUIN_PROBABILITY(2,1,10,1,10)
+```
+
+#### QUESTION 5: Which value of c should be to guarantee that the ruin probability over horizon time [0, 10] is less or equal to 10−3 .Use set up as the previous as (except value of c)
+
+```{r}
+#Since, the larger the c, the smaller ruin probability
+#we can solve this problem by some numerical method @-@
+#starting from c=1, we increase c by 1 each times until ruin probability reach 10^(-3)
+c<-1
+while(RUIN_PROBABILITY(2,1,10,c,10)>0.001)
+{
+  c<-c+1
+}
+c
+```
+
+#### PRACTICE QUESTION: Consider the compound Poisson process modeling aggregate health claims; frequency N is a Poisson process with rate λ = 20 per day and severity W is an Exponential random variable with mean θ = 500. Simulate 10000 scenarios for the aggregate claims S10 during the first 10 days.
+#### 1. Estimate E(R10) and V ar(R10) from simulated sample.
+#### 2. Plot histogram for simulated sample of R10. What can you say about the distribution of R10.
+#### 3. Propose an approximation or estimation for P(R10 > 120, 000).
+
+```{r}
+#First, we create a function to find 1 scenarios for R(t)
+Cramer_Lundberg_R<-function(lamdaN,lamdaW,t)
+{
+  n<-rpois(1,lamdaN*t)
+  sum<-0
+  for (i in 1:n)
+  {
+    W<-rexp(1,lamdaW)
+    sum<-sum+W
+  }
+  return(sum)
+}
+#Then, we simulate 10000 times scenarios for R10
+R10<-numeric(10000)
+for (i in 1:10000)
+{
+  R10[i]<-Cramer_Lundberg_R(20,1/500,10)
+}
+#the first 10 values of S10 is
+R10[1:10]
+
+# E[R10] and Var[R10] is as follwing @-@
+mean(R10)
+var(R10)
+
+#Histogram of R10 @-@
+hist(R10,
+main="Aggregated Claim R10",
+xlab="value of R10",
+col="darkmagenta"
+)
+
+#Find P(R10>120000)
+count<-0
+for(i in 1:10000)
+{
+  if(R10[i]>120000) {count<-count+1}
+}
+#so P(R10>120000) is
+count/10000
+```
+
+

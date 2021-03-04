@@ -1,0 +1,66 @@
+---
+title: "MARKOV CHAIN_2"
+author: "NGUYEN NGOC PHUNG"
+date: "10/26/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+#first, we will make some function see whether the gambler will ruin or not. The function will return 1 if the gambler ruin and 0 if he win
+
+gamble <- function(k,n,p) {
+	#k is innitial wealth, n is the upper bound, p is chance of win each bet
+  stake <- k
+	while (stake > 0 & stake < n) {
+		X <- sample(c(-1,1),1,prob=c(1-p,p))
+		stake <- stake + X
+	}
+	if (stake == 0) return(1) else return(0)
+}  
+
+```
+
+```{r}
+#we will simulate the function 10000 times and calculate the probability of ruin
+data<-replicate(10000,gamble(3,8,0.4))
+proba_win<-1-mean(data)
+proba_win
+
+```
+
+### EXTRA INTEREST
+
+#### MARKOV CHAIN: PROBLEM 6
+
+#### Consider a naive model for a stock that has a support level of $20/share because of a corporate buy-back program. Suppose also that the stock price moves randomly with a downward bias when the price is above $20 and randomly with an upward bias when the price is below $20.
+
+#### Expected number of steps needed to come from 25 to 18
+
+```{r}
+naive_model<-function(k,prob_over,prob_at,prob_under,start,end)
+{
+x<-start
+  count<-0
+while (x!=end)
+{state<-c(x-1,x+1)
+  if(x>k) {x<-sample(state,1,prob=prob_over)}
+  if(x==k) {x<-sample(state,1,prob=prob_at)}
+  if(x<k) {x<-sample(state,1,prob=prob_under)}
+count<-count+1
+}
+return(count)
+}
+
+k<-20
+prob_over<-c(2/3,1/3)
+prob_at<-c(0.1,0.9)
+prob_under<-c(1/3,2/3)
+data<-replicate(10000,naive_model(k,prob_over,prob_at,prob_under,25,18))
+data[1:100]
+mean(data)
+
+```
+
+

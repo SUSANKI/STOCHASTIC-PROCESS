@@ -1,0 +1,57 @@
+---
+title: "POISSON PROCESS"
+author: "NGUYEN NGOC PHUNG"
+date: "10/13/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+``` {r}
+#first we need to make a function of Poisson Process @-@
+Poisson_Process<-function(n,lamda,t)
+{
+  data<-numeric(n*t)
+  for(i in 1:(n*t))
+  {
+    data[i]<-rbinom(1,1,lamda/n)
+  }
+  return(data)
+}
+```
+
+```{r}
+#So the random process path with lamda=2 over interval [0,1] is
+x<-Poisson_Process(10000,2,1)
+#the first 500 elements of the process path is as following
+x[1:500]
+```
+
+```{r}
+library(ggplot2)
+time<-seq(1/10000,1,1/10000)
+N<-numeric(10000)
+for(i in 1:10000)
+{
+  N[i]<-sum(x[1:i])
+}
+ggplot()+
+  geom_step(aes(x=time, y=N))+
+  scale_x_continuous(breaks=time)+
+  theme_bw()
+```
+
+```{r}
+#for example, another random process with lamda=2 over the interval [0,20] @-@
+y<-Poisson_Process(1000,2,20)
+time2<-seq(1/1000,20,1/1000)
+N2<-numeric(20000)
+for(i in 1:20000)
+{
+  N2[i]<-sum(y[1:i])
+}
+ggplot()+
+  geom_step(aes(x=time2, y=N2))+
+  theme_bw()
+```
+```

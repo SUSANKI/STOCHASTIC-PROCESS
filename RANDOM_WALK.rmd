@@ -1,0 +1,353 @@
+---
+title: "RANDOM WALK_SUNDAY"
+author: "NGUYEN NGOC PHUNG"
+date: "11/21/2020"
+output: html_document
+---
+
+## SYMMETRIC RANDOM WALK
+
+### Simulate Path, Draw Random walk, Find PMF of Mn, Find PMF of increment (Mn-Mm) (n>m)
+
+#### QUESTION 1: Build a function for simulating a path of symmetric random walk @-@
+```{r}
+Random_Walk_Path<-function(M0,n,p,X)
+{
+  #M0 is the starting point @-@
+  #n is number of walks 
+  #p=P(H), so P(T)=(1-p)
+  #X is positive value of Xn
+  value<-c(X,-X)
+  Path<-numeric(n+1)
+  Path[1]<-M0
+  for(i in 2:(n+1))
+  {
+    Xn<-sample(value,1,prob=c(p,1-p))
+    Path[i]<-Path[i-1] + Xn
+  }
+  return(Path)
+}
+```
+
+#### QUESTION 2: Use the function to generate a path of 100 walks for P(H)=1/2, Xn=1 or Xn=-1 @-@
+```{r}
+Random_Walk_Path(0,100,0.5,1)
+```
+
+#### QUESTION 3: Simulate 10,000 paths with same info in Question 2
+```{r}
+Table_paths<-matrix(0,10000,100)
+for (i in 1:10000)
+{
+  Path<-Random_Walk_Path(0,100,0.5,1)
+  for(j in 1:100)
+  {
+    Table_paths[i,j]<-Path[j+1]
+  }
+}
+ #so the first 10 line with first 50 walks is like the following
+Table_paths[1:10,1:50]
+
+```
+
+#### QUESTION 4a: Find expected value of M50 and M70 by 10000 paths generated
+```{r}
+M50<-numeric(10000)
+for (i in 1:10000)
+{
+  M50[i]<-Table_paths[i,50]
+}
+#so the expected value is 
+sum(M50)/10000
+
+# There is other way shorter *-*
+sum(Table_paths[,50])/10000
+
+#By the same way, the expected value of M70 is
+sum(Table_paths[,70])/10000
+```
+
+#### QUESTION 4b: Find expected value of Mn (n=1,2,...,100) by 10000 paths generated
+```{r}
+Expected_value<-numeric(100)
+for(i in 1:100)
+{
+ Expected_value[i]<- sum(Table_paths[,i])/10000
+}
+#Since this is symmetric random walk, hence {Mn} is a martingale, it is reasonable that E[Mn] should be merely equal for all n *-*
+```
+
+#### QUESTION 5: Draw the histogram of M50, M70 @-@
+```{r}
+hist(M50, main="Value of M50")
+#or we can do by other way
+hist(Table_paths[,70],main="Value of M70")
+```
+
+#### QUESTION 6: Find the expectation and variance of (M75-M25)
+```{r}
+# QUESTION 6: Find the expectation and variance of (M75-M25)
+M25_M75<-numeric(10000)
+for(i in 1:10000)
+{
+  M25_M75[i]<-Table_paths[i,75]-Table_paths[i,25]
+}
+#so the E(M75-M25) and Var(M75-M25) is
+sum(M25_M75)/10000
+var(M25_M75)
+#they must be near to 0 and 50 respectively *-*
+```
+
+#### QUESTION 7: Build a function to graphically draw the random walk
+```{r}
+Draw_Random_Walk <- function(M0,n,p,X)
+{
+  path<-Random_Walk_Path(M0,n,p,X)
+  Mn<-numeric(n+1)
+  Mn[1]<-0
+  step<-numeric(n+1)
+  step[1]<-0
+  for(i in 2:(n+1))
+  {
+    Mn[i]<-path[i-1]
+    step[i]<-(i-1)
+  }
+  library(ggplot2)
+ggplot()+
+  geom_point(aes(x=step,y=Mn))+
+  geom_line(aes(x=step,y=Mn))+
+  ylab("Mn")+
+  theme_bw()
+}
+
+#for example, we draw the previous exercise @-@
+Draw_Random_Walk(0,100,0.5,1)
+
+```
+
+#### QUESTION 8 (hard): Draw the first 50 paths 
+```{r}
+y<-as.vector(t(Table_paths[1:50,]))
+df <- data.frame(x=rep(1:100,50), y=y, 
+         variable=rep(paste0(1:50), each=100))
+ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+```
+
+#### QUESTION 9: Create a vector of expected value of Xi (E[X1],...,E[X100]) and a vector for Variance of Xi (Var[X1],...,Var[X100])
+```{r}
+#create 2 all-zero vectors for Expected value and Variance
+E<-numeric(100)
+V<-numeric(100)
+for(i in 1:100)
+{
+  E[i]<-mean(Table_paths[,i])
+  V[i]<-var(Table_paths[,i])
+}
+#So we have the following table for expectation and variance for our paths, it would be reasonable if Expected values is merely 0 and variance increase as t increase
+rbind(E,V)
+
+plot(E,type="l")
+plot(V,type="l")
+
+```
+
+### First passage time 
+
+#### QUESTION 1: Build a function to find first passage time of a path
+```{r}
+Tm<-function(Path,m)
+{
+  n<-length(Path)
+  Set<-numeric(n)
+  for(i in 1:n)
+  {
+    if(Path[i]==m) {Set[i]<-i}
+    else {Set[i]<-NA}
+  }
+  if(all(is.na(Set)==TRUE)) {Tm<-NA}
+  else {Tm<-min(Set, na.rm=TRUE)}
+  return(Tm)
+}
+```
+
+#### QUESTION 2: For 10000 paths simulated above, find 10000 values of T1
+
+```{r}
+T1<-numeric(10000)
+for (i in 1:10000)
+{
+  T1[i]<-Tm(Table_paths[i,],1)
+}
+
+#so the first 10 values of T1 is
+T1[1:10]
+```
+
+#### QUESTION 3: Histogram of T1
+
+```{r}
+hist(T1, main="First passage time T1", col="darkmagenta")
+```
+
+#### QUESTION 4: For 10000 paths simulated above, find 10000 values of T3 and histogram of T3
+
+```{r}
+T3<-numeric(10000)
+for (i in 1:10000)
+{
+  T3[i]<-Tm(Table_paths[i,],3)
+}
+
+#so the first 10 values of T3 and histogram of T3 is
+T3[1:10]
+hist(T3, main="First passage time T3", col="darkmagenta")
+
+```
+
+### Reflection principle
+
+#### QUESTION 1: Create a Table of Paths containing all the paths having T3<=5,then choose randomly 30 paths in that table and draw it to see the reflection principle
+```{r}
+# first, we have that T3 is vector containing values of T3 in 10000 paths
+row_number<-c()
+for(i in 1:10000)
+{
+  if((is.na(T3[i])==FALSE)&&(T3[i]<=5)) {row_number<-c(row_number,i)}
+}
+#the first 50 values of row_number is @-@
+row_number[1:50]
+
+#then, we create a Table for Paths with T3<=5
+n<-length(row_number)
+Table_Reflect_T3<-matrix(0,n,100)
+for(i in 1:n)
+{
+  row<-row_number[i]
+  Path<-Table_paths[row,]
+  for(j in 1:100)
+  {
+    Table_Reflect_T3[i,j]<-Path[j]
+  }
+}
+
+
+y<-as.vector(t(Table_Reflect_T3[1:30,]))
+df <- data.frame(x=rep(1:100,30), y=y, 
+         variable=rep(paste0(1:30), each=100))
+ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+
+```
+
+## SCALED SYMMETRIC RANDOM WALK
+
+### Simulate Path, Draw Path, Compare as n increase
+
+#### QUESTION 1: Based on the function of random walk built above, build a function to simulate path for scaled random walk 
+
+```{r}
+Scaled_Random_Walk_Path<-function(M0,n,t,p,X)
+{
+  #we will generate a RW in interval [0,t] with the scale n
+  N<-n*t
+  Wt<-numeric(N)
+  Path<-Random_Walk_Path(M0,N,p,X)
+  for(i in 1:N)
+  {
+    Wt[i]<-(1/sqrt(n))*Path[i]
+  }
+  return(Wt)
+}
+
+```
+
+#### QUESTION 2: Simulate a path of scaled symmetric random walk for t in [0,10] and n=10,100,1000,10000
+
+```{r}
+Path_10<-Scaled_Random_Walk_Path(0,10,10,0.5,1)
+Path_10[1:10]
+Path_100<-Scaled_Random_Walk_Path(0,100,10,0.5,1)
+Path_100[1:10]
+Path_1000<-Scaled_Random_Walk_Path(0,1000,10,0.5,1)
+Path_1000[1:10]
+Path_10000<-Scaled_Random_Walk_Path(0,10000,10,0.5,1)
+Path_10000[1:10]
+
+```
+
+####QUESTION 3: Build a function to graphically draw the scaled symmetric random walk
+```{r}
+Draw_Scaled_Random_Walk <- function(M0,n,t,p,X)
+{
+  path<-Scaled_Random_Walk_Path(M0,n,t,p,X)
+  Wt<-numeric((n*t)+1)
+  Wt[1]<-0
+  step<-numeric((n*t)+1)
+  step[1]<-0
+  for(i in 2:((n*t)+1))
+  {
+    Wt[i]<-path[i-1]
+    step[i]<-(i-1)/n
+  }
+  library(ggplot2)
+ggplot()+
+  geom_line(aes(x=step,y=Wt))+
+  ylab("Wt")+
+  theme_bw()
+}
+
+#for example, we draw the previous exercise @-@
+# for n=10
+Draw_Scaled_Random_Walk(0,10,10,0.5,1)
+# for n=100
+Draw_Scaled_Random_Walk(0,100,10,0.5,1)
+# for n=1000
+Draw_Scaled_Random_Walk(0,1000,10,0.5,1)
+# for n=10000
+Draw_Scaled_Random_Walk(0,10000,10,0.5,1)
+#for n=100000
+Draw_Scaled_Random_Walk(0,100000,10,0.5,1)
+```
+
+#### QUESTION 4: Find the distribution of W(1.4),W(2.56),W(3.7),W(5.62),W(9.22),W(10) with n=1000 in[0,10]
+```{r}
+#first, we need to have a table to record 10000 paths of W(t)
+Path_scale<-matrix(0,10000,10000)
+for(i in 1:10000)
+{
+  Path<-Scaled_Random_Walk_Path(0,1000,10,0.5,1)
+  for(j in 1:10000)
+  {
+    Path_scale[i,j]<-Path[j]
+  }
+}
+# value of W(1.4) is at column 1400
+W_1.4 <-Path_scale[,1400]
+hist(W_1.4,main = "W(1.4)",col="blue")
+
+#value of W(2.56) is at column 2560
+W_2.56 <-Path_scale[,2560]
+hist(W_2.56,main = "W(2.56)",col="blue")
+
+#value of W(3.7) is at column 3700
+W_3.7 <-Path_scale[,3700]
+hist(W_3.7,main = "W(3.7)",col="blue")
+
+#value of W(5.62) is at column 5620
+W_5.62 <-Path_scale[,5620]
+hist(W_5.62,main = "W(5.62)",col="blue")
+
+#value of W(9.22) is at column 9220
+W_9.22 <-Path_scale[,9220]
+hist(W_9.22,main = "W(9.22)",col="blue")
+
+#value of W(10) is at column 10000
+W_10 <-Path_scale[,10000]
+hist(W_10,main = "W(10)",col="blue")
+
+```
+
+
+
+
+
+

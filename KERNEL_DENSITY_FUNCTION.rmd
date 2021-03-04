@@ -1,0 +1,102 @@
+---
+title: "KERNEL DENSITY FUNCTION"
+author: "NGUYEN NGOC PHUNG"
+date: "12/31/2020"
+output: html_document
+---
+
+
+### MAIN IDEA
+
+![](C:\Users\Win 10\Pictures\KER1.png)
+
+### CHOICE OF KERNEL
+
+![](C:\Users\Win 10\Pictures\KER3.png)
+![](C:\Users\Win 10\Pictures\KER5.png)
+
+### CHOICE OF BANWIDTH
+
+![](C:\Users\Win 10\Pictures\KER4.png)
+
+## MULTIVARIATE KERDEL DENSITY ESTIMATION
+
+![](C:\Users\Win 10\Pictures\KER2.png)
+
+## BANDWIDTH SELECTION
+
+![](C:\Users\Win 10\Pictures\BW1.png)
+![](C:\Users\Win 10\Pictures\BW2.png)
+
+## PLUG-IN RULE
+
+![](C:\Users\Win 10\Pictures\PG1.png)
+
+
+# SIMULATION
+
+### 2 UNIFORM DISTRIBUTION
+
+```{r}
+library(viridis)
+library(ks)
+# Generate data from bivariate uniform distribution
+y1<-runif(10000)
+y2<-runif(10000)
+samp <- cbind(y1,y2)
+# We use the Normal scale bandwidth to calcuate H
+Hns <- ks::Hns(x = samp)
+
+
+cont <- seq(0, 0.05, l = 20)
+col <- viridis::viridis
+
+plot(ks::kde(x = samp, H = Hns), display = "filled.contour2",
+     abs.cont = cont, col.fun = col, main = "NS")
+kde <- ks::kde(x=samp, H = Hns, gridsize = c(200, 200), xmin = c(0, 0),
+               xmax = c(1, 1))
+plot(kde, display = "persp", col.fun = viridis::viridis, xlab = "x", ylab = "y")
+
+```
+
+```{r}
+# Generate data from bivariate uniform distribution
+y1<-runif(100000)
+y2<-runif(100000)
+samp <- cbind(y1,y2)
+# We use the Normal scale bandwidth to calcuate H
+Hns <- ks::Hns(x = samp)
+
+
+cont <- seq(0, 0.05, l = 20)
+col <- viridis::viridis
+
+plot(ks::kde(x = samp, H = Hns), display = "filled.contour2",
+     abs.cont = cont, col.fun = col, main = "NS")
+kde <- ks::kde(x=samp, H = Hns, gridsize = c(200, 200), xmin = c(0, 0),
+               xmax = c(1, 1))
+plot(kde, display = "persp", col.fun = viridis::viridis, xlab = "x", ylab = "y")
+
+```
+
+### 2 STANDARD NORMAL DUSTRIBUTION
+
+```{r}
+# Generate data from bivariate normal distribution
+y1<-rnorm(10000)
+y2<-rnorm(10000)
+samp <- cbind(y1,y2)
+# We use the Normal scale bandwidth to calcuate H
+Hns <- ks::Hns(x = samp)
+
+
+cont <- seq(0, 0.05, l = 20)
+col <- viridis::viridis
+
+plot(ks::kde(x = samp, H = Hns), display = "filled.contour2",
+     abs.cont = cont, col.fun = col, main = "NS")
+kde <- ks::kde(x=samp, H = Hns, gridsize = c(200, 200), xmin = c(-3, -3),
+               xmax = c(3, 3))
+plot(kde, display = "persp", col.fun = viridis::viridis, xlab = "x", ylab = "y")
+
+```

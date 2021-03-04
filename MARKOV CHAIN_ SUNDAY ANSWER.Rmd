@@ -1,0 +1,117 @@
+---
+title: "MARKOV CHAIN (SUNDAY ANSWER)"
+author: "NGUYEN NGOC PHUNG"
+date: "10/24/2020"
+output: html_document
+---
+
+### EXAMPLE 1:
+#### Alice is taking a probability class and in each week she can be either up-to-date or she may have fallen behind. If she is up-to-date in a given week, the probability that she will be up-to-date (or behind) in the next week is 0.8 (or 0.2, respectively). If she is behind in the given week, the probability that she will be up-to-date (or behind) in the next week is 0.6 (or 0.4, respectively). We assume that these probabilities do not depend on whether she was up-to-date or behind in previous weeks, so the problem has the typical Markov chain character (the future depends on the past only through the present).
+#### QUESTION 1: create the state space S and transition matrix P, draw transition diagram (*)
+
+```{r}
+#the state space is 
+S<-c(1,2)
+S
+#the transition matrix is
+P<-matrix(c(0.8,0.6,0.2,0.4),2,2)
+P
+```
+#### QUESTION 2: create a path of length 10 given X0=1
+
+```{r}
+path_10<-numeric(11)
+path_10[1]<-1
+for(i in 2:11)
+{
+  if(path_10[i-1]==1) {path_10[i]<-sample(S,1,prob=c(0.8,0.2))}
+  if(path_10[i-1]==2) {path_10[i]<-sample(S,1,prob=c(0.6,0.4))}
+}
+path_10
+
+```
+#### QUESTION 3: create 10 paths of length 10 given P(X0=1)=0.6, P(X0=2)=0.4
+
+```{r}
+X0<-sample(S,1,prob=c(0.6,0.4))
+path_10<-matrix(0,10,11)
+for (i in 1:10)
+{
+  path_10[i,1]<-X0
+  for(j in 2:11)
+  {
+    if(path_10[i,j-1]==1) {path_10[i,j]<-sample(S,1,prob=c(0.8,0.2))}
+  if(path_10[i,j-1]==2) {path_10[i,j]<-sample(S,1,prob=c(0.6,0.4))}
+  }
+}
+path_10
+```
+
+#### QUESTION 4: create a function to generate 1 path of any length n for any transition matrix. Then create a path of length 100 in this example
+
+```{r}
+PATH<-function(n,P,S,init_proba)
+{
+  number_S<-length(S)
+  X0<-sample(S,1,prob=init_proba)
+  Path<-numeric(n+1)
+  Path[1]<-X0
+  for(i in 2:(n+1))
+  { 
+    for(k in 1:number_S)
+    {
+      if(Path[i-1]==S[k]) {Path[i]<-sample(S,1,prob=P[k,])}
+    }
+  }
+  return(Path)
+}
+
+PATH(100,P,S,c(0.6,0.4))
+```
+
+#### QUESTION 5: create 100 paths of length 10 given P(X0=1)=0.6, P(X0=2)=0.4
+```{r}
+Path_100<-matrix(0,100,11)
+for(i in 1:100)
+{
+  Path_row<-PATH(10,P,S,c(0.6,0.4))
+  for(j in 1:11)
+  {
+    Path_100[i,j]<-Path_row[j]
+  }
+}
+
+#the first 10 rows is
+Path_100[1:10,]
+
+```
+
+#### QUESTION 6: find 2-step and 3-step transition matrix P2, P3 (*)
+```{r}
+P2<-P%*%P
+P2
+P3<-(P%*%P)%*%P
+P3
+P3<-P2%*%P
+P3
+```
+
+#### QUESTION 7: find 100-step transition matrix P100
+```{r}
+matrixpower <- function(mat,k) {
+  if (k == 0) return (diag(dim(mat)[1])) 
+  if (k == 1) return(mat)
+  if (k > 1) return( mat %*% matrixpower(mat, k-1))
+}
+matrixpower(P,5)
+matrixpower(P,10)
+P100<-matrixpower(P,100)
+P100
+```
+
+
+
+
+
+
+

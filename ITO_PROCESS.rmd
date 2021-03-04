@@ -1,0 +1,109 @@
+---
+title: "ITO PROCESS"
+author: "NGUYEN NGOC PHUNG"
+date: "1/1/2021"
+output:
+  word_document: default
+  html_document: default
+---
+## SIMULATION EXERCISE
+### Simulate Ito process (Xt)t>0
+### dX_t = 2X_t dt + 3X_t dB_t  
+
+```{r}
+X0<-1
+n<-10^5
+t<-1
+h<-t/n
+
+# we create Path for Xt
+
+Xt<-numeric(n+1)
+
+# we have dX_t = 2Xtdt + 3XtdBt with initial value X_0 = 1
+Xt[1]<-X0
+
+for(i in 1:n)
+{
+  dBh<-rnorm(1,0,sqrt(h))
+  Xt[i+1]<-Xt[i]+(2*Xt[i]*h) + (3*Xt[i]*dBh)
+}
+
+step<-seq(0,1,length=n+1)
+plot(step,Xt, type="l")
+
+```
+
+
+## EXTRA INTEREST
+
+### FIND E(Bt^4) at t=1, t=1.5, t=1.75 , t=2
+
+### Since we know that Bt~N(0,t), hence, E[Bt^4]= 3*(t^2)
+
+### However, I want to check this by simulating 10000 paths of Bt^4 using ITO-DOEBLIN FORMULA
+
+### By using Ito-Doeblin formula, we have that
+
+### d(Bt^4) = 4* (Bt^3) *dBt + 6* (Bt^2) *dt
+
+```{r}
+# First, we create function for creating path for Brownian motion and path for Bt^4 @-@
+
+Path_BM <-function(n,t)
+{
+  Path<-c(0,sqrt(t/n)*cumsum(rnorm(n)))
+  return(Path)
+}
+
+Path_B4<- function(t,n)
+{
+h<-t/n
+Path_Bt<-Path_BM(n,t)
+
+B4<-numeric(n+1)
+B4[1]<-0
+for(i in 1:n)
+{
+  Bt<-Path_Bt[i]
+  dBt<-Path_Bt[i+1]-Path_Bt[i]
+  B4[i+1]<-B4[i]+ 4*(Bt^3)*dBt + 6*(Bt^2)*h
+}
+return(B4)
+}
+
+# Let's plot 1 path for Bt^4
+n<-10^5
+P_B4<-Path_B4(2,n)
+step<-seq(0,2,length=n+1)
+plot(step,P_B4, type="l")
+
+n<-10^4
+# Creating 1000 paths for Bt^4
+Table_P_B4<-matrix(0,10000,n+1)
+for(i in 1:10000)
+{
+  P<-Path_B4(2,n)
+  for(j in 1:(n+1))
+  {
+    Table_P_B4[i,j]<-P[j]
+  }
+}
+
+# E(Bt^4) at t=1
+mean(Table_P_B4[,5001])
+# It must be around 3 
+
+# E(Bt^4) at t=1.5
+mean(Table_P_B4[,7501])
+# It must be around 6.75
+
+# E(Bt^4) at t=1.75
+mean(Table_P_B4[,8751])
+# It must be around 9.1875
+
+# E(Bt^4) at t=2
+mean(Table_P_B4[,n+1])
+# It must be around 12
+
+```

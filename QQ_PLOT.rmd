@@ -1,0 +1,60 @@
+---
+title: "Q-Q PLOT (BONUS)"
+author: "NGUYEN NGOC PHUNG"
+date: "1/4/2021"
+output:
+  html_document: default
+  word_document: default
+---
+
+### COCA COLA COMPANY
+
+```{r}
+data_KO<-read.csv('C:/Users/Win 10/Documents/KO.csv')
+data_KO[1:20,]
+
+#since we take only close price (Sk)
+stock_price<-data_KO$Close
+n<-length(stock_price)
+
+#now, we generate a vector of returns by using formula rk=ln(Sk/Sk-1)
+log_return<-numeric(n-1)
+for(i in 1:(n-1))
+{
+  log_return[i]<-log(stock_price[i+1]/stock_price[i])
+}
+
+#histogram of return of Coca cola company look like this *-*
+hist(log_return, col="blue")
+
+# now we have Q-Q plot look as the following:
+
+qqnorm(log_return, pch = 1, frame = FALSE)
+qqline(log_return, col = "steelblue", lwd = 2)
+
+```
+
+#### FACEBOOK CORPORATION
+
+```{r}
+data_FB<-read.csv('C:/Users/Win 10/Documents/FB.csv')
+data_FB[1:20,]
+
+#since we take only close price (Sk)
+stock_price<-data_FB$Close
+n<-length(stock_price)
+
+#now, we generate a vector of returns by using formula rk=ln(Sk/Sk-1)
+log_return<-numeric(n-1)
+for(i in 1:(n-1))
+{
+  log_return[i]<-log(stock_price[i+1]/stock_price[i])
+}
+
+#histogram of return of Coca cola company look like this *-*
+hist(log_return, col="blue")
+
+# now we have Q-Q plot look as the following:
+
+qqnorm(log_return, pch = 1, frame = FALSE)
+qqline(log_return, col = "steelblue", lwd = 2)

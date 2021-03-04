@@ -1,0 +1,38 @@
+---
+title: "QUIZ_ITO_INTEGRAL"
+author: "NGUYEN NGOC PHUNG"
+date: "1/8/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+# FIRST, WE CREATE A FUNCTION FOR Xt
+Xt_path<-function(t,n,X0)
+{
+h<-t/n
+# we create Path for Xt
+Xt<-numeric(n+1)
+time<-seq(0,t,length=(n+1))
+Xt[1]<-X0
+for(i in 1:n)
+{
+  dBh<-rnorm(1,0,sqrt(h))
+  Xt[i+1]<-Xt[i]+ (1-2*time[i])*Xt[i]*h + time[i]*Xt[i]*dBh
+}
+return(Xt)
+}
+
+X1<-numeric(10^4)
+n<-10^4
+for(i in 1:(10^4))
+{
+  X1[i]<-Xt_path(1,10^4,1)[n+1]
+}
+
+hist(X1,main="DISTRIBUTION OF X1")
+mean(X1)
+var(X1)
+
+```

@@ -1,0 +1,149 @@
+---
+title: "Exploring the BRFSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+load("brfss2013.RData")
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `brfss2013`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+#we need to load the package
+
+```
+
+
+
+* * *
+
+## Part 1: Data
+```{r}
+
+#first, we want to view all the attributes of the data-frame
+names(brfss2013)
+#in order to see its dimension and data types
+str(brfss2013)
+```
+
+* * *
+
+## Part 2: Research questions
+
+**Research quesion 1:**
+QUESTION 1: SUMMARIZING NUMBER OF SLEEP (zzz)
+
+```{r}
+str(brfss2013$sleptim1)
+Q1<-brfss2013 %>%
+  filter(!is.na(sleptim1)) 
+Q1 %>% summarise(mean = mean(sleptim1),sd=sd(sleptim1),count=n())
+#I plot it in bar graph
+ggplot(data = Q1, aes(x = factor(sleptim1))) +
+    geom_bar()
+
+```
+
+**Research quesion 2:**
+QUESTION 2: AVERAGE ALCOHOL DRINK OF THOSE HAVE SUFFERED FROM DEPRESSION
+```{r}
+brfss2013 %>% filter(!is.na(avedrnk2)) %>% summarise(mean = mean(avedrnk2),sd=sd(avedrnk2),count=n())
+#Structure of 2 attributes
+str(brfss2013$addepev2)
+str(brfss2013$avedrnk2)
+#get rid of NA value and people have not suffered from depression then assign to Q2
+Q2<-brfss2013 %>%
+  filter(as.numeric(addepev2)==1,!is.na(addepev2),!is.na(avedrnk2)) 
+Q2 %>% summarise(mean = mean(avedrnk2),sd=sd(avedrnk2),count=n())
+
+```
+
+**Research quesion 3:**
+QUESTION 3: SEGMENTED BAR PLOT BETWEEN AVERAGE ALCOHOL DRINK AND (NOT) HAVING SUFFERED FROM DEPRESSION
+
+```{r}
+Q3<-brfss2013 %>%
+  filter(!is.na(addepev2),!is.na(avedrnk2)) 
+ggplot(data = Q3, aes(x = addepev2 , fill = factor(avedrnk2))) +
+  geom_bar()
+``` 
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+**Research quesion 1:**
+
+QUESTION 1: CALCULATE PEOPLE'S UNHEALTHY DAYS BASED ON THEIR PHYSICAL AND EMOTIONAL HEALTH, THEN FIND THEIR RELATIONSHIP THROUGH SEGMENTED BAR-PLOT
+
+```{r}
+#First, I want to see the structure of number of day physical and mental health is not good @-@
+str(brfss2013$physhlth)
+str(brfss2013$menthlth)
+#Then, I will exclude all NA row and assign new data.frame to QUES1
+QUES1<-brfss2013 %>% filter(!is.na(physhlth),!is.na(menthlth))
+# I want to see the summary of these 2 attributes @-@
+QUES1 %>% summarise(meanphy=mean(physhlth),sdphy=sd(physhlth),minphy=min(physhlth),maxphy=max(physhlth),count=n())
+QUES1 %>% summarise(meanphy=mean(menthlth),sdphy=sd(menthlth),minphy=min(menthlth),maxphy=max(menthlth),count=n())
+#Then I plot it in segmented bar plot
+ggplot(data = QUES1, aes(x = physhlth, fill = factor(menthlth))) +geom_bar()
+#So we can clearly see that, a large number of unhealthy day is zero, and as number of physically unhealthy day is 0, remarkably large number of mentally unhealthy day is 0 @-@
+```
+
+
+
+**Research quesion 2:**
+
+QUESTION 2: WE CLAIM THAT PEOPLE WITH HIGH EDUCATION LEVEL GONNA HAVE HIGH INCOME LEVEL, I WILL CHECK THIS BY USING ATTIBUTE EDUCA AND INCOME2
+
+```{r}
+#First, I want to see the structure of educational and income level
+str(brfss2013$educa)
+str(brfss2013$income2)
+#Then, I will exclude all NA row and assign new data.frame to QUES2
+QUES2<-brfss2013 %>% filter(!is.na(educa),!is.na(income2))
+#Then I plot it in segmented bar plot @-@
+ggplot(data = QUES2, aes(x = as.numeric(educa), fill = income2)) +geom_bar()
+#So we can clearly see the strong possitive relationship between educational level and income level, which infer that people having high educational level tend to gain more income *-*
+```
+
+
+
+**Research quesion 3:**
+
+QUESTION 3: CHECK THE RELATIONSHIP BETWEEN PEOPLE SMOKING FREQUENCY AND HAVING PULMONARY DISEASE 
+
+```{r}
+#First, I want to see the structure of having pulmonary disease and frequency of smoking
+str(brfss2013$chccopd1)
+str(brfss2013$smokday2)
+#Then, I will exclude all NA row and assign new data.frame to QUES3
+QUES3<-brfss2013 %>% filter(!is.na(chccopd1),!is.na(smokday2))
+#Then I plot it in segmented bar plot @-@
+ggplot(data = QUES3, aes(x = chccopd1, fill = smokday2)) +geom_bar()
+#surprisingly, large amount of people reported smok every day do not suffer from pulmonary disease
+```
+
+
+## THE END 
+

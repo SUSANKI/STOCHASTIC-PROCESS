@@ -1,0 +1,123 @@
+---
+title: "STOCHASTIC INTEGRAL_HW"
+author: "NGUYEN NGOC PHUNG"
+date: "12/26/2020"
+output:
+  word_document: default
+  html_document: default
+---
+### CREATE FUNCTIONS
+
+```{r}
+#Function of Brownian motion path
+Path_way<- function(n,t)
+{
+  Path<-c(0,cumsum(rnorm(n,0,sqrt(t/n))))
+  return(Path)
+}
+# Function for Riemann sum (left-endpoint)
+left_endpoint<- function(n,integrand,integrator)
+{
+  #integrand is a vector with length n contain all value of f(xi-1) *-*
+  #let's product be a vector contain f(xi-1)*integrator(x) for i in 1 to n
+  product<-numeric(n)
+  for(i in 1:n)
+  {
+    product[i]<-integrand[i]*(integrator[i+1]-integrator[i])
+  }
+  sum<-sum(product)
+  return(sum)
+}
+```
+
+### EXAMPLE 1 (PAGE 52)
+
+```{r}
+#Find I1 
+n<-10000
+t<-1
+P<-Path_way(n,t)
+step<-seq(0,1,length=n+1)
+plot(step,P, type="l")
+
+integrand<-seq(0,t-t/n,t/n)
+integrator<-P
+# So I1 is :
+left_endpoint(n,integrand,integrator)
+
+# EXTRA: I want to see the distribution of I1
+I1<-numeric(10000)
+for( i in 1:10000)
+{
+  P<-Path_way(n,t)
+  integrand<-seq(0,t-t/n,t/n)
+  I1[i]<-left_endpoint(n,P,integrator)
+}
+
+#Distribution of I1:
+mean(I1)
+sd(I1)
+hist(I1,main="Distribution of I1", col="darkmagenta")
+```
+
+### EXAMPLE 2 (PAGE 53)
+```{r}
+#Find I1 
+n<-10000
+t<-1
+P<-Path_way(n,t)
+step<-seq(0,1,length=n+1)
+plot(step,P, type="l")
+
+integrand<-P[1:n]
+integrator<-P
+# So I1 is:
+left_endpoint(n,integrand,integrator)
+
+# EXTRA: I want to see the distribution of I1
+I1<-numeric(10000)
+for( i in 1:10000)
+{
+  P<-Path_way(n,t)
+  integrand<-P[1:n]
+  I1[i]<-left_endpoint(n,P,integrator)
+}
+
+#Distribution of I1:
+mean(I1)
+sd(I1)
+hist(I1,main="Distribution of I1", col="darkblue")
+```
+
+### EXAMPLE 3 (PAGE 54)
+
+```{r}
+#Find I1 
+n<-10000
+t<-1
+P<-Path_way(n,t)
+step<-seq(0,1,length=n+1)
+plot(step,P, type="l")
+
+integrand<-P[1:n]*P[1:n]
+integrator<-P
+# So I1 is:
+left_endpoint(n,integrand,integrator)
+
+# EXTRA: I want to see the distribution of I1
+I1<-numeric(10000)
+for( i in 1:10000)
+{
+  P<-Path_way(n,t)
+  integrand<-P[1:n]*P[1:n]
+  I1[i]<-left_endpoint(n,P,integrator)
+}
+
+#Distribution of I1:
+mean(I1)
+sd(I1)
+hist(I1,main="Distribution of I1", col="deeppink3")
+```
+
+
+
