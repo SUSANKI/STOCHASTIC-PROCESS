@@ -1,0 +1,253 @@
+---
+title: "BROWNIAN MOTION_SUNDAY"
+author: "NGUYEN NGOC PHUNG"
+date: "11/28/2020"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+### BROWNIAN MOTION PATH (IN 4 WAYS)
+#### Create the standard Brownian motion paths knowing the time and the lenth of paths
+```{r}
+#way number 1
+#we use the fact that B(ti)= B(ti-1)+Xi (where Xi folow N(0,t/n))
+Path_way1 <-function(n,t)
+{
+  Path<-numeric(n+1)
+  Path[1]<-0
+  for(i in 2:(n+1))
+  {
+    normal<-rnorm(1,0,t/n)
+    Path[i]<-Path[i-1]+normal
+  }
+  return(Path)
+}
+
+Path1<-Path_way1(10000,2)
+step<-seq(0,2,length=10001)
+plot(step,Path1, type="l")
+
+# way number 2
+#we use the fact that Xi=sqrt(t/n)*Zi, we generate a vector of Zi, then B(ti)= sqrt(t/n)*(Z1+Z2+...+Zn)
+
+Path_way2 <-function(n,t)
+{
+  Path<-c(0,cumsum(rnorm(n)))
+  return(Path)
+}
+
+Path2<-Path_way2(10000,2)
+step<-seq(0,2,length=10001)
+plot(step,Path2, type="l")
+
+#way number 3
+# we use the fact that B(t)=X1+X2+...+Xn (where each Xi follow N(0,t/n))
+Path_way3<- function(n,t)
+{
+  Path<-c(0,cumsum(rnorm(n,0,t/n)))
+  return(Path)
+}
+
+Path3<-Path_way3(10000,2)
+step<-seq(0,2,length=10001)
+plot(step,Path3, type="l")
+
+
+#way number 4
+#we construct Brownian motion through scaled symetric random walk with large n
+Random_Walk_Path<-function(M0,n,p,X)
+{
+  #M0 is the starting point @-@
+  #n is number of walks 
+  #p=P(H), so P(T)=(1-p)
+  #X is positive value of Xn
+  value<-c(X,-X)
+  Path<-numeric(n+1)
+  Path[1]<-M0
+  for(i in 2:(n+1))
+  {
+    Xn<-sample(value,1,prob=c(p,1-p))
+    Path[i]<-Path[i-1] + Xn
+  }
+  return(Path)
+}
+
+Scaled_Random_Walk_Path<-function(M0,n,t,p,X)
+{
+  #we will generate a RW in interval [0,t] with the scale n
+  N<-n*t
+  Wt<-numeric(N)
+  Path<-Random_Walk_Path(M0,N,p,X)
+  for(i in 1:N)
+  {
+    Wt[i]<-(1/sqrt(n))*Path[i]
+  }
+  return(Wt)
+}
+
+Path4<-Scaled_Random_Walk_Path(0,10000,2,1/2,1)
+step<-seq(1/10000,2,length=20000)
+plot(step,Path4, type="l")
+
+
+
+# EXTRA: I want to see 20 paths of Brownian motion @-@
+ 
+ Table_Path<-matrix(0,20,10001)
+ for(i in 1:20)
+ {
+   P<-Path_way2(10000,1)
+   for(j in 1:10001)
+   {
+     Table_Path[i,j]<-P[j]
+   }
+ }
+ 
+ library(ggplot2)
+ y<-as.vector(t(Table_Path[1:20,]))
+ df <- data.frame(x=rep(seq(0,10,10/10000),20), y=y, 
+                  variable=rep(paste0("", 1:20), each=10001))
+ ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+```
+
+### INVARIANCE PRINCIPLE
+
+#### The Donsker's invariance principle stated that when we start with "any" i.i.d sequence of RVs X1,X2,...,Xn with E[Xi]=0 and Var[Xi]=1
+#### Let Mn=X1+...+Xn
+#### S(nt)/sqrt(n) will converge to Bt as n-> inf
+
+#### we create 2 sequence of Xi and follow the above steps to generate Brownian motion
+#### Sequence 1: P(Xi=-2)=P(Xi=2)=1/8, P(Xi=0) =3/4
+#### Sequence 2: P(Xi=-1)=1/3, P(Xi=0)=1/2, P(Xi=2)=1/6
+```{r}
+# we let n=10,000 and t=1
+# first, we generate a path for sequence 1
+n<-10000
+X1<-numeric(n)
+for(i in 1:n)
+{
+  X1[i]<-sample(c(-2,0,2),1,prob=c(1/8,3/4,1/8))
+}
+Path1<-c(0,1/sqrt(n)*cumsum(X1))
+step<-seq(0,1,length=(n+1))
+plot(step,Path1, type="l")
+
+# second, we generate a path for sequence 2
+X2<-numeric(n)
+for(i in 1:n)
+{
+  X2[i]<-sample(c(-1,0,2),1,prob=c(1/3,1/2,1/6))
+}
+Path2<-c(0,1/sqrt(n)*cumsum(X2))
+step<-seq(0,1,length=(n+1))
+plot(step,Path2, type="l")
+
+# so we can clearly see that the Donsker's invariance principle hold for any sequence Xi with E[Xi]=0, Var[Xi]=1 @-@
+```
+
+### TRANSFORMATION OF BROWNIAN MOTION
+
+#### REFLECTION, TRANSLATION, RESCALING, INVERSION (Bt)t>0 is Standard Brownian motion
+
+#### REFLECTION: (-Bt)t>0 is standard Brownian motion
+```{r}
+#we will show the reflection principle by drawing 2 paths, the original and the its reflection in order to know what is the differences @-@
+n<-10000
+t<-10
+Path_o<-Path_way1(n,t)
+Path_r<- -Path_o
+step<-seq(0,10, length=n+1)
+
+library(ggplot2)
+df <- data.frame(step,Path_o,Path_r)
+ggplot(df, aes(step)) +                    
+  geom_line(aes(y=Path_o), colour="red") +  
+  geom_line(aes(y=Path_r), colour="green")
+
+
+# now we plot 20 paths of (-Bt)t>0 @-@
+Table_Path_r<- -Table_Path
+library(ggplot2)
+ y<-as.vector(t(Table_Path_r[1:20,]))
+ df <- data.frame(x=rep(seq(0,10,10/10000),20), y=y, 
+                  variable=rep(paste0("", 1:20), each=10001))
+ ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+
+```
+
+#### TRANSLATION: (B(t+s)-Bs)t>0 for all s>=0
+
+```{r}
+# we will show the reflection principle by drawing 2 paths, the original and the its translation in order to know what is the differences @-@
+# we take s=3, which means we take 3001st value @-@
+n<-10000
+t<-10
+Path_o<-Path_way2(n,t)
+Bs<-Path_o[3001]
+Path_t<- numeric(7001)
+for (i in 1:7001)
+{
+  Path_t[i]<-Path_o[3000+i]-Bs
+}
+step1<-seq(0,10,10/n)
+step2<-seq(0,7,10/n)
+x<-c(3,3)
+y<-c(Bs-0.05,-Bs+0.05)
+df1<-data.frame(step1,Path_o)
+df2<-data.frame(step2,Path_t)
+df3<-data.frame(x,y)
+
+p = ggplot() + 
+  geom_line(data = df1, aes(x =step1 , y = Path_o), color = "blue") +
+  geom_line(data = df2, aes(x = step2, y =Path_t), color = "red") +
+  geom_line(data = df3, aes(x = x, y = y), color = "black") 
+
+print(p)
+
+# now we plot 20 paths of (B(t+s)-Bs)t>0 @-@
+Table_Path_t<- matrix(0,20,7001)
+for(i in 1:20)
+{
+  Bs<-Table_Path[i,3001]
+for (j in 1:7001)
+{
+  Table_Path_t[i,j]<-Table_Path[i,3000+j]-Bs
+}
+}
+library(ggplot2)
+ y<-as.vector(t(Table_Path_t[1:20,]))
+ df <- data.frame(x=rep(seq(0,7,10/10000),20), y=y, 
+                  variable=rep(paste0("", 1:20), each=7001))
+ ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+
+```
+
+#### RESCALING: 1/sqrt(a)*B(at) (t>0) for all a>0 is standard Brownian motion
+
+```{r}
+n<-20000
+t<-2
+a<-2
+Path_o<-Path_way2(n,t)
+step1<-seq(0,2,2/20000)
+step2<-seq(0,1,1/20000)
+Path_re<-1/sqrt(a)*Path_o
+df1<-data.frame(step1,Path_o)
+df2<-data.frame(step2,Path_re)
+
+p = ggplot() + 
+  geom_line(data = df1, aes(x =step1 , y = Path_o), color = "blue") +
+  geom_line(data = df2, aes(x = step2, y =Path_re), color = "red") 
+ 
+print(p)
+
+``` 
+
+#### INVERSION: The process (Xt)t>0 defined by X0=0 and Xt=t*B(1/t)
+
+
+
+
+
+

@@ -1,0 +1,302 @@
+---
+title: "BROWNIAN_MOTION_2"
+author: "NGUYEN NGOC PHUNG"
+date: "12/14/2020"
+output:
+  word_document: default
+  html_document: default
+---
+### GENERATE A PATH OF BROWNIAN MOTION
+
+#### Let's |Π| = {t0, t1, ..., tn} be a partition of [0, t]
+#### Let's n=100,000, t=2, we have the following Brownian motion @-@
+
+```{r}
+# we use the fact that B(t)=X1+X2+...+Xn (where each Xi follow N(0,t/n))
+Path_BM<- function(n,t)
+{
+  Path<-c(0,cumsum(rnorm(n,0,t/n)))
+  return(Path)
+}
+
+Path<-Path_BM(100000,1)
+step<-seq(0,1,length=100001)
+plot(step,Path, type="l")
+```
+
+### GENERATE A FUCNTION TO GET A PATH OF VARIARIATION OF ORDER-N OVER TIME INTERVAL [0,T]
+
+```{r}
+#first, we create a function to see value of n-order variation over time interval [0,t]
+order<-function(Path,order)
+{
+  n<-length(Path)-1
+  x<-numeric(n)
+  for(i in 1:n)
+  {
+    ab<-abs(Path[i+1]-Path[i])
+    x[i]<-ab^order
+  }
+  #now we cumsum the absolute value of |f(ti+1) − f(ti)|^n and assign that value to Path_nth_order
+  Path_nth_order<-cumsum(x)
+  return(Path_nth_order)
+}
+```
+
+### FIRST-ORDER VARIATION
+
+#### F VT (f) = lim sigma|f(ti+1) − f(ti)|
+
+```{r}
+
+#we have the first-order variation of Path is
+n<-100000
+order(Path,1)[n]
+
+#now, I want to see the changes of first order variation over the time interval [0,1]
+P<-order(Path,1)
+step<-seq(1/n,1,length=n)
+plot(step,P,type="l",col="red")
+
+#OBSERVATION: the first_order variation increase over time interval [0,1], if we use linear regression to find out the slope equal @-@
+lm(step~P)
+```
+
+### SECOND-ORDER VARIATION
+
+#### F VT (f) = lim sigma|f(ti+1) − f(ti)|^2
+
+```{r}
+
+#we have the second-order variation of Path is
+n<-100000
+order(Path,2)[n]
+
+#now, I want to see the changes of second order variation over the time interval [0,1]
+P<-order(Path,2)
+step<-seq(1/n,1,length=n)
+plot(step,P,type="l",col="red")
+
+#OBSERVATION: the second_order variation increase over time interval [0,1], if we use linear regression to find out the slope equal @-@ 
+#Note: the slope would be much smaller than the slope of 1_st order
+lm(step~P)
+```
+
+### THIRD-ORDER VARIATION
+
+#### F VT (f) = lim sigma|f(ti+1) − f(ti)|^3
+
+```{r}
+
+#we have the third-order variation of Path is
+n<-100000
+order(Path,3)[n]
+
+#now, I want to see the changes of third order variation over the time interval [0,1]
+P<-order(Path,3)
+step<-seq(1/n,1,length=n)
+plot(step,P,type="l",col="red")
+
+#OBSERVATION: the third_order variation increase over time interval [0,1], if we use linear regression to find out the slope equal @-@ 
+#Note: the slope would be smaller than the slope of 1_st and 2nd order
+lm(step~P)
+```
+
+
+### FORTH-ORDER VARIATION
+
+#### F VT (f) = lim sigma|f(ti+1) − f(ti)|^4
+
+```{r}
+
+#we have the forth-order variation of Path is
+n<-100000
+order(Path,4)[n]
+
+#now, I want to see the changes of forth order variation over the time interval [0,1]
+P<-order(Path,4)
+step<-seq(1/n,1,length=n)
+plot(step,P,type="l",col="red")
+
+#OBSERVATION: the third_order variation increase over time interval [0,1], if we use linear regression to find out the slope equal @-@ 
+#Note: the slope would be smaller than the slope of 1_st,2nd and 3rd order
+lm(step~P)
+```
+
+### FIFTH-ORDER VARIATION
+
+#### F VT (f) = lim sigma|f(ti+1) − f(ti)|^5
+
+```{r}
+
+#we have the fifth-order variation of Path is
+n<-100000
+order(Path,5)[n]
+
+#now, I want to see the changes of fifth order variation over the time interval [0,1]
+P<-order(Path,5)
+step<-seq(1/n,1,length=n)
+plot(step,P,type="l",col="red")
+
+#OBSERVATION: the third_order variation increase over time interval [0,1], if we use linear regression to find out the slope equal @-@ 
+#Note: the slope would be smaller than the slope of above order
+lm(step~P)
+```
+
+
+### BROWNIAN MOTION WITH DRIFT
+
+#### CREATE A FUNCTION TO GENERATE PATH OF BROWNIAN MOTION WITH DRIFT
+
+```{r}
+Path_BM_drift<-function(n,t,miu,sigma)
+{
+  Path_Bt<-Path_BM(n,t)
+  Path_Xt<-numeric(n+1)
+  step<-seq(0,t,length=(n+1))
+  for(i in 1:(n+1))
+  {
+    Path_Xt[i]<-(miu*step[i])+(sigma*Path_Bt[i])
+  }
+  return(Path_Xt)
+}
+
+P<-Path_BM_drift(10000,1,0.06,2)
+step<-seq(0,1,length=10001)
+plot(step,P, type="l")
+```
+
+#### DRIFT TERM: we gonna figure out the effect of drift term miu to the trend and movement of Brownnian motion
+
+```{r}
+# first, we create an arbitrary vector of 50 different drift terms from normal(0,4) @-@
+miu<-sort(rnorm(50,0,0.5),decreasing = F)
+# see the graph of vector miu
+plot(miu,type="l")
+
+n<-10001
+sigma<-2
+
+#second, we create a table of 50 different paths of Brownian motion with drift with constant sigma=2
+Table_miu<-matrix(0,50,n)
+for(i in 1:50)
+{
+  m<-miu[i]
+  path_i<-Path_BM_drift(n,1,m,sigma)
+  for(j in 1:n)
+  {
+    Table_miu[i,j]<-path_i[j]
+  }
+}
+
+#finally, we plot all 50 paths in a graph @-@
+library(ggplot2)
+ y<-as.vector(t(Table_miu))
+ df <- data.frame(x=rep(seq(0,1,1/10000),50), y=y, 
+                  variable=rep(paste0("", 1:50), each=10001))
+ ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+ 
+ # CONCLUSION: value of miu determine the trend of our Brownian motion.
+ # For miu>0, the higher mu, the BM is more likely to increase faster
+ # For miu<0, the lower mu , the BM is more likely to decrease faster
+```
+
+
+#### DIFFUSION TERM: we gonna figure out the effect of diffusion term sigma to the trend and movement of Brownnian motion
+
+```{r}
+# first, we create a vector of 50 diffusion terms by Chi-square (df=4) @-@
+sigma<-sort(rchisq(50,4),decreasing = F)
+#I want to see the graph of sigma
+plot(sigma,type="l")
+
+n<-10001
+miu<-0.005
+
+#second,we create a table of 50 different paths of Brownian motion with drift with constant miu=1
+Table_sigma<-matrix(0,50,n)
+for(i in 1:50)
+{
+  s<-sigma[i]
+  path_i<-Path_BM_drift(n,1,miu,s)
+  for(j in 1:n)
+  {
+    Table_sigma[i,j]<-path_i[j]
+  }
+}
+
+#finally, we plot all 50 paths in a graph @-@
+library(ggplot2)
+ y<-as.vector(t(Table_sigma))
+ df <- data.frame(x=rep(seq(0,1,1/10000),50), y=y, 
+                  variable=rep(paste0("", 1:50), each=10001))
+ ggplot(data = df, aes(x=x, y=y)) + geom_line(aes(colour=variable))
+ 
+
+
+ # CONCLUSION: the diffusion parameter sigma determine the spread of BM. In orther words, the higher sigma is likely to lead to larger spread of BM.
+ 
+```
+
+### GEOMETRIC BROWNIAN MOTION FOR STOCK PRICE
+
+#### COCA COLA COMPANY
+
+```{r}
+data_KO<-read.csv('C:/Users/Win 10/Documents/KO.csv')
+head(data_KO)
+#since we take only close price (Sk)
+stock_price<-data_KO$Close
+n<-length(stock_price)
+
+#now, we generate a vector of returns by using formula rk=ln(Sk/Sk-1)
+log_return<-numeric(n-1)
+for(i in 1:(n-1))
+{
+  log_return[i]<-log(stock_price[i+1]/stock_price[i])
+}
+
+#histogram of return of Coca cola company look like this *-*
+hist(log_return, col="blue")
+
+#we have mean(log_return)=r-sigma^2/2 and sd(log_return)=sigma
+#where r is interest rate and sigma= daily volatility of return *-*
+sigma<-sd(log_return)
+r<-mean(log_return)+(sigma^2)/2
+
+#Hence, we have:
+r
+sigma
+
+```
+
+
+#### FACEBOOK CORPORATION
+
+```{r}
+data_FB<-read.csv('C:/Users/Win 10/Documents/FB.csv')
+head(data_FB)
+#since we take only close price (Sk)
+stock_price<-data_FB$Close
+n<-length(stock_price)
+
+#now, we generate a vector of returns by using formula rk=ln(Sk/Sk-1)
+log_return<-numeric(n-1)
+for(i in 1:(n-1))
+{
+  log_return[i]<-log(stock_price[i+1]/stock_price[i])
+}
+
+#histogram of return of Coca cola company look like this *-*
+hist(log_return, col="blue")
+
+#we have mean(log_return)=r-sigma^2/2 and sd(log_return)=sigma
+#where r is interest rate and sigma= daily volatility of return *-*
+sigma<-sd(log_return)
+r<-mean(log_return)+(sigma^2)/2
+
+#Hence, we have:
+r
+sigma
+
+```

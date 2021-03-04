@@ -1,0 +1,43 @@
+---
+title: "APPLY FUNCTION"
+author: "NGUYEN NGOC PHUNG"
+date: "9/30/2020"
+output: html_document
+---
+## LAPPLY AND SAPPLY
+The Split-Apply-Combine Strategy
+
+#see the first 6 lines
+head()
+#name of attribute
+names()
+#number of row and collumn
+dim()
+#complete description of dataset
+viewinfo()
+#format of variables have been stored
+class()
+#if we want to know the range of each numeric vector
+range()
+#When given a vector, the unique() function returns a vector with all duplicate elements removed
+unique()
+#if we want to know the length of each vector or list @-@
+length()
+#a data frame is really just a list of vectors
+as.list(data.frame)
+#if we only want to work with attribute 11 to 17, then @-@ (same for row)
+Y <- X[, 11:17] 
+
+#The lapply() function takes a list as input, applies a function to each element of the list, then returns a list of the same length as the original one.
+#The 'l' in 'lapply' stands for 'list'
+#For example, I want to see the class of every attribute of data.frame
+lapply(data.frame,class)
+
+#Pretend you are interested in only the second item from each element of the unique_vals list that you just created. Since each element of the unique_vals list is a vector and we're not aware of any built-in function in R that returns the second element of a vector, we will construct our own function.
+lapply(data.frame, function(elem) elem[2])
+#sapply() returns a vector
+#s in sapply means simplify, sapply function is the same as lapply
+
+
+
+
